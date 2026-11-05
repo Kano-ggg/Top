@@ -1,1 +1,64 @@
 
+#N1
+list1 = [1, 2, 3, -97, 3, -5677, -3, -72, 6, 342]
+otric = 0
+chet = 0
+nechet = 0
+crat3 = 1
+minmax = 1
+mini = min(list1)
+maxi = max(list1)
+
+for num in list1:
+    if num < 0:
+       otric += num
+    if num % 2 == 0:
+        chet += num
+    if num % 2 != 0:
+        nechet += num
+    if num % 3 == 0:
+        crat3 *= num
+for x in list1[mini, maxi]:
+    minmax *= x
+first_pos_idx = -1
+last_pos_idx = -1
+for i in range(len(list1)):
+    if list1[i] > 0:
+        first_pos_idx = i
+        break
+for i in range(len(list1) - 1, -1, -1):
+    if list1[i] > 0:
+        last_pos_idx = i
+        break
+sum_between_pos = 0
+if first_pos_idx != -1 and last_pos_idx != -1 and first_pos_idx < last_pos_idx:
+    for i in range(first_pos_idx + 1, last_pos_idx):
+        sum_between_pos += list1[i]
+print("Сумма отрицаткльных: ", otric)
+print("Сумма чётных: ", chet)
+print("Сумма нечётных: ", nechet)
+print("Произведение кратных 3: ", crat3)
+print("Произведение между мин и макс: ", minmax)
+print("Сумма между первым и последним: ", sum_between_pos)
+
+
+#N2
+list2 = [1, 2, 3, -97, 3, -5677, -3, -72, 6, 342]
+even = []
+odds = []
+neg = []
+pos = []
+for i in list2:
+    if i % 2 == 0:
+        even.append(i)
+    if i % 2 != 0:
+        odds.append(i)
+    if i < 0:
+        neg.append(i)
+    if i > 0:
+        pos.append(i)
+
+print(even)
+print(odds)
+print(neg)
+print(pos)
