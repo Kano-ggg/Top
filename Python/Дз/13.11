@@ -1,0 +1,78 @@
+#N1
+a = int(input("Введите наименьшее число: "))
+n = int(input("Введите наибольшее число: "))
+sum1 = 0
+sum2 = 0
+sum3 = 0
+count1 = 0
+count2 = 0
+count3 = 0
+for i in range(a, n + 1):
+    if i % 2 == 0:
+        sum1 = sum1 + i
+        count1 = count1 + 1
+    if i % 2 != 0:
+        sum2 = sum2 + i
+        count2 = count2 + 1
+    if i % 9 == 0:
+        sum3 = sum3 + i
+        count3 = count3 + 1
+print ("Сумма чётных: ", sum1)
+print ("Среднее арифметическое чётных: ", sum1 / count1)
+print ("Сумма нечётных: ", sum2)
+print ("Среднее арифметическое нечётных: ", sum2 / count2)
+print ("Сумма кратных 9: ", sum3)
+print ("Среднее арифметическое кратных 9: ", sum3 / count3)
+
+
+
+
+#N2
+x = int(input("Введите длину: "))
+u = input("Введите символ: ")
+for j in range(x):  
+    for i in range(1):
+        print(u, end="")
+    print()
+
+
+#N3
+while True:
+    num = int(input("Введите число(для выхода 7): "))
+    if num == 7:
+        print("Good bye!")
+        break
+    elif num > 0:
+        print("Numbwr is positive")
+    elif num < 0:
+        print("Numbwr negative")
+    elif num == 0:
+        print("Numbwr is equal to zero")
+
+
+#N4
+sum = 0
+count = 0
+max = 0
+min = 0
+while True:
+    num = int(input("Введите число(для 7): "))
+    if num == 7:
+        if count > 0:
+            print("Сумма: ", sum)
+            print("Максимальное: ", max)
+            print("Минимальное: ", min)
+        else:
+            print()
+            break
+    else:
+        sum += num
+        if max == 0 or min == 0:
+            max = num
+            min = num
+        else:
+            if num > max:
+                max = num
+            if num < min:
+                min = num
+        count += 1
