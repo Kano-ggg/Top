@@ -1,0 +1,30 @@
+#Задание 1
+list = input("Введите текст: ")
+list.split(" ")
+list1 = list.lower()
+list2 = list1[::-1]
+if list1 == list2:
+    print("Это палиндром")
+else:
+    print("Нет")
+
+
+#Задание 2
+
+list = input("Введите текст: ")
+words = input("Введите зарезервированные слова: ")
+words1 = words.split()
+for word in words1:
+    list = list.replace(word, word.upper())
+print("Изменённый: ")
+print(list)
+
+
+#Задание 3
+
+list = input("Введите текст: ")
+count = 0
+for char in list:
+    if char in ".!?":
+        count += 1
+print(f"Кол-во предложений {count}")
