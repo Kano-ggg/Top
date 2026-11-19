@@ -1,0 +1,33 @@
+# Yj;txtr 1
+
+try:
+    num = int(input("Введите целое число: "))
+    print(num, "->", num**2)
+except ValueError:
+    print("Введите целое ЧИСЛО")
+
+# Pflfybt 2 
+
+try:
+    num1 = int(input("Введите целое число: "))
+    num2 = int(input("Введите целое число: "))
+    res = num1 / num2
+    print(num1, "и", num2, "->", res)
+except ValueError:
+    print("Введите два целых ЧИСЛА")
+except ZeroDivisionError:
+    print("На ноль делить нельзя")
+
+# Rjy.iyz 3
+
+days = ["Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота", "Воскресенье"]
+try:
+    n = input("Введите номер дня недели: ")
+    d_index = int(n) 
+    print(days[d_index - 1]) 
+except ValueError:
+    print("Введите НОМЕР дня")
+except IndexError:
+    print("Нет такого дня")
+finally:
+    print("Проверка завершена")
