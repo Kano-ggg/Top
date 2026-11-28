@@ -1,0 +1,357 @@
+import pygame
+import random
+import sys
+
+pygame.init()
+
+WIDTH, HEIGHT = 800, 600
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption("Птица-Стрелок")
+clock = pygame.time.Clock()
+FONT = pygame.font.SysFont('Arial', 24)
+BIG_FONT = pygame.font.SysFont('Arial', 48, bold=True)
+
+LEVEL_COLORS = [
+    (135, 206, 235), (255, 182, 193), (152, 251, 152), (221, 160, 221),
+    (240, 230, 140), (173, 216, 230), (255, 160, 122), (230, 230, 250),
+    (255, 215, 0), (255, 105, 180)
+]
+
+class Bird:
+    def init(self):
+        self.x = 100
+        self.y = 300
+        self.width = 40
+        self.height = 30
+        self.velocity = 0
+        self.gravity = 0.5
+        self.jump_strength = -10
+
+    def update(self):
+        self.velocity += self.gravity
+        self.y += self.velocity
+
+    def jump(self):
+        self.velocity = self.jump_strength
+
+    def get_rect(self):
+        return pygame.Rect(self.x, self.y, self.width, self.height)
+
+    def draw(self, surface):
+        rect = pygame.Rect(self.x, self.y, self.width, self.height)
+        pygame.draw.ellipse(surface, (255, 99, 71), rect)
+        wing = pygame.Rect(self.x + 8, self.y + 10, 15, 12)
+        pygame.draw.ellipse(surface, (255, 69, 0), wing)
+        pygame.draw.circle(surface, (255, 255, 255), (int(self.x + 30), int(self.y + 9)), 5)
+        pygame.draw.circle(surface, (0, 0, 0), (int(self.x + 32), int(self.y + 9)), 2)
+        pygame.draw.polygon(surface, (255, 165, 0), [
+            (self.x + 38, self.y + 15),
+            (self.x + 48, self.y + 12),
+            (self.x + 48, self.y + 18)
+        ])
+
+
+class Pillar:
+    def init(self, x, gap):
+        self.x = x
+        self.width = 60
+        self.top_height = random.randint(50, HEIGHT - gap - 50)
+        self.bottom_y = self.top_height + gap
+        self.passed = False
+
+    def update(self, speed):
+        self.x -= speed
+
+    def get_top_rect(self):
+        return pygame.Rect(self.x, 0, self.width, self.top_height)
+
+    def get_bottom_rect(self):
+        return pygame.Rect(self.x, self.bottom_y, self.width, HEIGHT - self.bottom_y)
+
+    def draw(self, surface):
+        top = self.get_top_rect()
+        bottom = self.get_bottom_rect()
+        pygame.draw.rect(surface, (34, 139, 34), top)
+        pygame.draw.rect(surface, (0, 100, 0), top, 2)
+        pygame.draw.rect(surface, (34, 139, 34), bottom)
+        pygame.draw.rect(surface, (0, 100, 0), bottom, 2)
+
+
+class Coin:
+    def init(self, x, y):
+        self.x = x
+        self.y = y
+        self.radius = 15
+        self.collected = False
+
+    def update(self, speed):
+        self.x -= speed
+
+    def draw(self, surface):
+        if not self.collected:
+            pygame.draw.circle(surface, (255, 215, 0), (int(self.x), int(self.y)), self.radius)
+            pygame.draw.circle(surface, (255, 165, 0), (int(self.x), int(self.y)), self.radius, 2)
+            pygame.draw.circle(surface, (255, 255, 224), (int(self.x - 5), int(self.y - 5)), 5)
+
+class Rock:
+    def init(self, x, y):
+        self.x = x
+        self.y = y
+        self.width = 40
+        self.height = 40
+        self.health = 1
+
+    def update(self, speed):
+        self.x -= speed
+def get_rect(self):
+        return pygame.Rect(self.x, self.y, self.width, self.height)
+
+    def draw(self, surface):
+        rect = self.get_rect()
+        pygame.draw.rect(surface, (105, 105, 105), rect)
+        pygame.draw.rect(surface, (47, 79, 79), rect, 2)
+        pygame.draw.rect(surface, (128, 128, 128), (self.x + 5, self.y + 5, 10, 10))
+        pygame.draw.rect(surface, (128, 128, 128), (self.x + 20, self.y + 20, 15, 15))
+
+class Bullet:
+    def init(self, x, y):
+        self.x = x
+        self.y = y
+        self.width = 10
+        self.height = 5
+        self.speed = 8
+
+    def update(self):
+        self.x += self.speed
+
+    def get_rect(self):
+        return pygame.Rect(self.x, self.y - 2, self.width, self.height)
+
+    def draw(self, surface):
+        pygame.draw.ellipse(surface, (0, 255, 0), (self.x, self.y - 2, self.width, self.height))
+        pygame.draw.ellipse(surface, (0, 128, 0), (self.x, self.y - 2, self.width, self.height), 1)
+
+
+class Particle:
+    def init(self, x, y, color):
+        self.x = x
+        self.y = y
+        self.vx = (random.random() - 0.5) * 6
+        self.vy = (random.random() - 0.5) * 6
+        self.life = 40
+        self.color = color
+
+    def update(self):
+        self.x += self.vx
+        self.y += self.vy
+        self.life -= 1
+
+    def draw(self, surface):
+        alpha = max(0, self.life / 40)
+        size = int(4 * alpha) + 1
+        color = tuple(int(c * alpha) for c in self.color)
+        pygame.draw.rect(surface, color, (int(self.x), int(self.y), size, size))
+
+
+class Game:
+    def init(self):
+        self.level = 1
+        self.score = 0
+        self.coins = 0
+        self.state = 'playing'
+        self.speed = 3
+        self.bird = Bird()
+        self.pillars = []
+        self.coin_list = []
+        self.rocks = []
+        self.bullets = []
+        self.particles = []
+        self.init_level()
+
+    def init_level(self):
+        self.pillars = []
+        self.coin_list = []
+        self.rocks = []
+        self.bullets = []
+        self.particles = []
+        self.bird.y = 300
+        self.bird.velocity = 0
+        self.speed = 3 + self.level * 0.3
+        gap = max(120, 200 - self.level * 5)
+
+        for i in range(5):
+            self.pillars.append(Pillar(WIDTH + i * 300, gap))
+
+        for i in range(8):
+            self.coin_list.append(Coin(400 + i * 200, random.randint(50, HEIGHT - 100)))
+
+        for i in range(3 + self.level):
+            self.rocks.append(Rock(600 + i * 250, random.randint(75, HEIGHT - 150)))
+
+    def jump(self):
+        if self.state == 'playing':
+            self.bird.jump()
+        elif self.state == 'gameover':
+            self.reset()
+        elif self.state == 'levelcomplete':
+            self.next_level()
+
+def shoot(self):
+        if self.state == 'playing':
+            self.bullets.append(Bullet(self.bird.x + self.bird.width, self.bird.y + self.bird.height / 2))
+
+    def reset(self):
+        self.level = 1
+        self.score = 0
+        self.coins = 0
+        self.state = 'playing'
+        self.init_level()
+
+    def next_level(self):
+        self.level += 1
+        self.state = 'playing'
+        self.init_level()
+
+    def update(self):
+        if self.state != 'playing':
+            return
+
+        self.bird.update()
+
+        if self.bird.y < 0 or self.bird.y + self.bird.height > HEIGHT:
+            self.state = 'gameover'
+
+        bird_rect = self.bird.get_rect()
+
+        for pillar in self.pillars:
+            pillar.update(self.speed)
+            if bird_rect.colliderect(pillar.get_top_rect()) or bird_rect.colliderect(pillar.get_bottom_rect()):
+                self.state = 'gameover'
+            if not pillar.passed and pillar.x + pillar.width < self.bird.x:
+                pillar.passed = True
+                self.score += 10
+
+if self.pillars and self.pillars[0].x + self.pillars[0].width < 0:
+            self.pillars.pop(0)
+            gap = max(120, 200 - self.level * 5)
+            self.pillars.append(Pillar(WIDTH + 200, gap))
+
+        for coin in self.coin_list:
+            coin.update(self.speed)
+            if not coin.collected:
+                dx = (self.bird.x + self.bird.width / 2) - coin.x
+                dy = (self.bird.y + self.bird.height / 2) - coin.y
+                if (dx * dx + dy * dy) ** 0.5 < coin.radius + 20:
+                    coin.collected = True
+                    self.coins += 1
+                    self.score += 5
+                    for _ in range(8):
+                        self.particles.append(Particle(coin.x, coin.y, (255, 215, 0)))
+
+        for bullet in self.bullets:
+            bullet.update()
+            b_rect = bullet.get_rect()
+            for rock in [self.rocks](https://self.rocks):
+                if b_rect.colliderect(rock.get_rect()):
+                    if bullet in self.bullets:
+                        self.bullets.remove(bullet)
+                    rock.health -= 1
+                    if rock.health <= 0:
+                        if rock in [self.rocks](https://self.rocks):
+                            self.rocks.remove(rock)
+                        self.score += 20
+                        for _ in range(12):
+                            self.particles.append(Particle(rock.x + rock.width / 2, rock.y + rock.height / 2, (128, 128, 128)))
+                    break
+
+        self.bullets = [b for b in self.bullets if b.x < WIDTH]
+
+        for rock in [self.rocks](https://self.rocks):
+            rock.update(self.speed)
+            if bird_rect.colliderect(rock.get_rect()):
+                self.state = 'gameover'
+
+        self.rocks = [r for r in self.rocks if r.x + r.width > 0]
+
+        for p in self.particles:
+            p.update()
+        self.particles = [p for p in self.particles if p.life > 0]
+
+        if all(p.passed for p in self.pillars) and len(self.rocks) == 0:
+            if self.level < 10:
+                self.state = 'levelcomplete'
+            else:
+                self.state = 'gameover'
+def draw(self):
+        screen.fill(LEVEL_COLORS[self.level - 1])
+        pygame.draw.rect(screen, (139, 69, 19), (0, HEIGHT - 20, WIDTH, 20))
+
+        for pillar in self.pillars:
+            pillar.draw(screen)
+
+        for coin in self.coin_list:
+            coin.draw(screen)
+
+        for rock in [self.rocks](https://self.rocks):
+            rock.draw(screen)
+
+        for bullet in self.bullets:
+            bullet.draw(screen)
+
+        for p in self.particles:
+            p.draw(screen)
+
+        self.bird.draw(screen)
+
+        level_text = FONT.render(f"Уровень: {self.level}/10", True, (255, 255, 255))
+        score_text = FONT.render(f"Очки: {self.score}", True, (255, 255, 255))
+        coins_text = FONT.render(f"Монеты: {self.coins}", True, (255, 255, 255))
+        screen.blit(level_text, (WIDTH // 2 - 80, 20))
+        screen.blit(score_text, (WIDTH // 2 - 60, 50))
+        screen.blit(coins_text, (WIDTH // 2 - 70, 80))
+
+        if self.state == 'gameover':
+            overlay = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
+            overlay.fill((0, 0, 0, 180))
+            screen.blit(overlay, (0, 0))
+            t1 = BIG_FONT.render("ИГРА ОКОНЧЕНА", True, (255, 255, 255))
+            t2 = FONT.render(f"Очки: {self.score}", True, (255, 255, 255))
+            t3 = FONT.render("Нажмите пробел для перезапуска", True, (255, 255, 255))
+            screen.blit(t1, (WIDTH // 2 - t1.get_width() // 2, HEIGHT // 2 - 60))
+            screen.blit(t2, (WIDTH // 2 - t2.get_width() // 2, HEIGHT // 2))
+            screen.blit(t3, (WIDTH // 2 - t3.get_width() // 2, HEIGHT // 2 + 40))
+
+        elif self.state == 'levelcomplete':
+            overlay = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
+            overlay.fill((0, 0, 0, 180))
+            screen.blit(overlay, (0, 0))
+            t1 = BIG_FONT.render(f"УРОВЕНЬ {self.level} ПРОЙДЕН!", True, (255, 255, 255))
+            t2 = FONT.render("Нажмите пробел для следующего уровня", True, (255, 255, 255))
+            screen.blit(t1, (WIDTH // 2 - t1.get_width() // 2, HEIGHT // 2 - 40))
+            screen.blit(t2, (WIDTH // 2 - t2.get_width() // 2, HEIGHT // 2 + 20))
+
+
+def main():
+    game = Game()
+
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    game.jump()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1:
+                    game.shoot()
+
+        game.update()
+        game.draw()
+        pygame.display.flip()
+        clock.tick(60)
+
+
+if name == "main":
+    main()
+
